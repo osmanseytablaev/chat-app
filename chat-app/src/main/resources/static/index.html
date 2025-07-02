@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Chat App</title>
+  <link rel="stylesheet" href="/css/index.css">
+</head>
+
+<body>
+  <div class="app-container">
+    <header class="top">
+      <div class="logo"><img src="/images/logo.png" alt="Logo"></div>
+      <div class="auth">
+        <button type="button" onclick="openFormLogin()">Sign in</button>
+        <button type="button" onclick="openFormRegistration()">Register</button>
+      </div>
+      <div class="form-popup" id="registration">
+        <form class="form-container" id="registerForm" onsubmit="return false;">
+          <h1>Registration</h1>
+
+          <label for="email"><b>Email</b></label>
+          <input type="text" placeholder="Enter Email" name="email" required>
+
+          <label for="psw"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="psw" required>
+
+          <button type="button" class="btn" onclick="doRegister()">Register</button>
+          <button type="button" class="btn cancel" onclick="closeFormRegistration()">Close</button>
+        </form>
+      </div>
+      <div class="form-popup" id="login">
+        <form class="form-container" id="loginForm">
+          <h1>Login</h1>
+
+          <label for="email"><b>Email</b></label>
+          <input type="text" placeholder="Enter Email" name="email" required>
+
+          <label for="psw"><b>Password</b></label>
+          <input type="password" placeholder="Enter Password" name="psw" required>
+
+          <button type="button" class="btn" onclick="doLogin()">Login</button>
+          <button type="button" class="btn cancel" onclick="closeFormLogin()">Close</button>
+        </form>
+      </div>
+    </header>
+    <main class="chat-space">
+      <div class="message">
+        <input type="text" id="message" name="message" placeholder="Type your message">
+        <button>Send</button>
+      </div>
+    </main>
+  </div>
+  <script>
+    function openFormRegistration() {
+      document.getElementById("registration").style.display = "block";
+    }
+
+    function closeFormRegistration() {
+      document.getElementById("registration").style.display = "none";
+    }
+    function openFormLogin() {
+      document.getElementById("login").style.display = "block";
+    }
+
+    function closeFormLogin() {
+      document.getElementById("login").style.display = "none";
+    }
+    async function doRegister() {
+      const email = document.querySelector('#registerForm [name=email]').value;
+      const pw = document.querySelector('#registerForm [name=psw]').value;
+
+      const resp = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pw })
+      });
+      if (resp.ok) { 
+        closeFormRegistration(); alert('Registered, now sign in'); 
+      }
+      else { 
+        alert('Registration failed'); 
+      }
+    }
+
+    async function doLogin() {
+      const email = document.querySelector('#loginForm [name=email]').value;
+      const pw = document.querySelector('#loginForm [name=psw]').value;
+
+      const form = new URLSearchParams();
+      form.append('username', email);
+      form.append('password', pw);
+
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: form.toString()
+      });
+      if (resp.ok) {
+        closeFormLogin();
+        document.querySelector('.auth').innerHTML =
+          '<button onclick="doLogout()">Sign out</button>';
+        const messageInput = document.querySelector('.message');
+        messageInput.style.display = 'block';
+      } else { alert('Invalid credentials'); }
+    }
+
+    async function doLogout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      location.reload();
+    }
+  </script>
+</body>
+
+</html>
